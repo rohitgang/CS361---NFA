@@ -165,7 +165,7 @@ public NFA() {
         Queue<HashSet<NFAState>> queue = new LinkedList<>();  // Create a queue (of sets of NFAStates) for BFS
 
         // Create a set that contains the startState, and add this set to our DFA and queue
-        Set<NFAState> startDFAState = eClosure(startState);
+        Set<NFAState> startDFAState = eClosure(start);
         answerDFA.addStartState(startDFAState.toString());
         queue.add((HashSet<NFAState>) startDFAState); //Add the start set to the queue
 
@@ -185,7 +185,7 @@ public NFA() {
                 currentSet.addAll(eClosure(currentState));
             }
 
-            for(char currentTransition : nfaAlphabet) { //For each a in sigma...
+            for(char currentTransition : Sigma) { //For each a in sigma...
                 if(currentTransition != 'e') { // Except for e, obviously
 
                     // Do the GOTO operation on the closure set
@@ -243,7 +243,7 @@ public NFA() {
 
         //Create a map to track visited states
         LinkedHashMap<NFAState,Boolean> visitedMap = new LinkedHashMap<>();
-        for(NFAState currentState : allStates) {
+        for(NFAState currentState : Q) {
             visitedMap.put(currentState,false);
         }
 
