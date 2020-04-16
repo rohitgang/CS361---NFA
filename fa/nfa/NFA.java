@@ -82,8 +82,23 @@ public NFA() {
 
     @Override
     public void addTransition(String fromState, char onSymb, String toState) {
-        
-
+        Sigma.add(onSymb);
+        for(NFAState state : Q){
+            if (state.getName().equals(fromState)){
+                Set<NFAState> nextOne = state.getNextWithTransition(onSymb);
+                if(nextOne != null){
+                    for(NFAState el : nextOne){
+                        if (!el.getName().equals(toState)){
+                            for(NFAState q : Q){
+                                if (q.getName().equals(toState)){
+                                    state.addStateWithTransition(q, onSymb);
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        }
     }
 
     /**
@@ -103,8 +118,6 @@ public NFA() {
     public Set<NFAState> getFinalStates() {
         return finals;
     }
-
-
      /**
      * Getter for q0
      * 
@@ -132,25 +145,9 @@ public NFA() {
      * @return the sink state.
      */
     public Set<NFAState> getToState(NFAState from, char onSymb) {
-        return null;
+        // Access stateMap of variable from. Get the set of states using get method of stateMap.   
+        return from.getNextWithTransition(onSymb);
     }
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
     //NFA SPECIFIC METHODS
 

@@ -4,7 +4,7 @@ import java.util.*;
 
 public class NFAState extends fa.State {
     protected String name ; 
-    private Hashtable<Character, ArrayList<NFAState>> stateMap ;
+    private Hashtable<Character, Set<NFAState>> stateMap ;
     private char transition;
     private Boolean isFinal;
     private boolean isStart;
@@ -12,29 +12,29 @@ public class NFAState extends fa.State {
 
     public NFAState(String name){
         this.name = name;
-        this.stateMap = new Hashtable<Character, ArrayList<NFAState>>();
+        this.stateMap = new Hashtable<Character, Set<NFAState>>();
         this.transition = 'n';
         this.isFinal = false;
         this.isStart = false;
     }
 
     
-    public ArrayList<NFAState> getNextWithTransition(char transition){
-        ArrayList<NFAState> ret = stateMap.get(transition);
+    public Set<NFAState> getNextWithTransition(char transition){
+        Set<NFAState> ret = stateMap.get(transition);
         if (ret == null) return null;
         else return ret;
     }
 
     public boolean addStateWithTransition(NFAState state, char transition){
         if (stateMap.get(transition) == null){
-            ArrayList<NFAState> states = new ArrayList<NFAState>();
+            Set<NFAState> states = new HashSet<NFAState>();
             states.add(state);
             this.stateMap.put(transition, states);
             return true;
         } else {
             if(stateMap.get(transition).contains(state)) return false;
             else{
-                ArrayList<NFAState> states = stateMap.get(transition);
+                Set<NFAState> states = stateMap.get(transition);
                 states.add(state);
                 stateMap.put(transition, states);
                 return true;
