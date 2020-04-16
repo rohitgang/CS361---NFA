@@ -7,11 +7,155 @@ import fa.dfa.DFAState;
 import java.util.*;
 
 public class NFA implements NFAInterface {
-    NFAState startState; //Only one state can be the start in a NFA
-    Set<NFAState> acceptStates = new HashSet<>(); //HashSets track order that objects are stored into it, described in 3.3 #3
-    LinkedHashMap<String, LinkedHashMap<Character,HashSet<String>>> transitionMap = new LinkedHashMap<>(); // state -> (character -> next state)
-    Set<NFAState> allStates = new HashSet<>(); //Set of all states in the NFA (including start, accepting and other states, if any)
-    Set<Character> nfaAlphabet = new HashSet<>(); // Symbols used as transition characters for our NFA
+    NFAState start; //Only one state can be the start in a NFA
+    Set<NFAState> finals; //HashSets track order that objects are stored into it, described in 3.3 #3
+    Set<Character> transitions; // state -> (character -> next state)
+    Set<NFAState> Q; //Set of all states in the NFA (including start, accepting and other states, if any)
+    Set<Character> Sigma; // Symbols used as transition characters for our NFA
+
+
+public NFA() {
+    Q = new HashSet<NFAState>();
+    Sigma = new HashSet<>();
+    transitions = new HashSet<>();
+    finals = new HashSet<NFAState>();
+}
+
+
+
+
+
+     /**
+     * Sets the state with the name as label as start state
+     * @param name
+     */
+    public void addStartState(String name) {
+        for(NFAState state : Q){
+            if(state.getName().equals(name)){
+                state.setStartState(true);
+                start = state;
+                return;
+            }
+        }
+        start = new NFAState(name);
+        Q.add(start);
+        start.setStartState(true);
+    }
+
+    
+
+     /**
+     * Adds a non-final, not initial state to the NFA instance
+     * 
+     * @param name is the label of the state
+     */
+    public void addState(String name) {
+       
+        NFAState newState = new NFAState(name);
+        Q.add(newState);
+    }
+
+    /**
+     * Adds a non-final, not initial state to the NFA instance using the state object
+     * @param state
+     */
+    public void addState(NFAState state) {
+        Q.add(state);
+    }
+
+
+     /**
+     * Adds a final state to the NFA
+     * 
+     * @param name is the label of the state
+     */
+    public void addFinalState(String name) {
+        NFAState finalS = new NFAState(name);
+        for(NFAState starte : Q){
+            if (state.getName().equals(name)) {
+                state.setFinalState(true);
+                return;
+            }
+        }
+        finalS.add(finalS);
+        finalS.setFinalState(true);
+        Q.add(finalS);
+    }
+
+
+    @Override
+    public void addTransition(String fromState, char onSymb, String toState) {
+        // TODO Auto-generated method stub
+
+    }
+
+    /**
+     * Getter for Q
+     * 
+     * @return a set of states that the NFA has
+     */
+    public Set<NFAState> getStates() {
+        return Q;
+    }
+
+     /**
+     * Getter for final states
+     * 
+     * @return a set of final states that the NFA has
+     */
+    public Set<NFAState> getFinalStates() {
+        return finals;
+    }
+
+
+     /**
+     * Getter for q0
+     * 
+     * @return the start state of the NFA
+     */
+    public State getStartState() {
+        return start;
+    }
+
+    /**
+     * Getter for Sigma
+     * 
+     * @return the alphabet of the NFA
+     */
+
+    public Set<Character> getABC() {
+        return Sigma;
+    }
+
+    /**
+     * Uses transition function delta of FA
+     * 
+     * @param from   the source state
+     * @param onSymb the label of the transition
+     * @return the sink state.
+     */
+    public Set<NFAState> getToState(NFAState from, char onSymb) {
+        return null;
+    }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+    //NFA SPECIFIC METHODS
 
     /**
      * This method converts an NFA object into a DFA
@@ -137,5 +281,7 @@ public class NFA implements NFAInterface {
 
         return eClosureSet;
     }
+
+    
 
 }
