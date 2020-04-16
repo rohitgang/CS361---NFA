@@ -22,9 +22,6 @@ public NFA() {
 }
 
 
-
-
-
      /**
      * Sets the state with the name as label as start state
      * @param name
@@ -70,22 +67,22 @@ public NFA() {
      * @param name is the label of the state
      */
     public void addFinalState(String name) {
-        NFAState finalS = new NFAState(name);
-        for(NFAState starte : Q){
+        NFAState finalState = new NFAState(name);
+        for(NFAState state : Q){
             if (state.getName().equals(name)) {
                 state.setFinalState(true);
                 return;
             }
         }
-        finalS.add(finalS);
-        finalS.setFinalState(true);
-        Q.add(finalS);
+        finals.add(finalState);
+        finalState.setFinalState(true);
+        Q.add(finalState);
     }
 
 
     @Override
     public void addTransition(String fromState, char onSymb, String toState) {
-        // TODO Auto-generated method stub
+        
 
     }
 
