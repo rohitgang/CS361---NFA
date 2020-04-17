@@ -195,46 +195,43 @@ public NFA() {
 
     @Override
     public DFA getDFA() {
-    
-    Set<NFAState> emptySet = new HashSet<NFAState>();
-    emptySet.add(start);
+        Set<NFAState> emptySet = new HashSet<NFAState>();
+        emptySet.add(start);
+        DFA retDFA = new DFA();
+        Queue<Set<NFAState>> q = new LinkedList<>();
 
-    DFA retDFA = new DFA();
-    Queue<Set<NFAState>> q = new LinkedList<>();
-
-    Set<NFAState> DFAStart = eClosure(start, emptySet);
-    // q.add(DFAStart);
-    retDFA.addStartState(DFAStart.toString());
-    // Set<NFAState> allClosures = new HashSet<NFAState>();
-    for (NFAState state : Q){
-        Set<NFAState> eOfState = eClosure(state, emotySet);
-        if (!eOfState.toString().equals(state.toString())) q.add(eOfState);
-    }
-    for(Set<NFAState> set_of_state : q){
-        NFAState newOne = new NFAState(set_of_state.toString());
-        Hashtable<Character, Set<NFAState>> forNewState = new Hashtable<Character, Set<NFAState>>();
-        for(NFAState state : set_of_state){
-            for(Character alphabet: Sigma){
-                Set<NFAState> toStates = state.getNextWithTransition(alphabet);
-                if(forNewState.get(alphabet) == null) 
-                    forNewState.put(alphabet, toStates);
-                else{
-                    if(!forNewState.get(alphabet).toString().equals(toStates.toString())){
-                        forNewState.put(alphabet, toStates);
-                    }
-                }
-
-            }    
-            for(Character ch: forNewState.keySet()){ // Created statemap for new states
-                for(NFAState el : forNewState.get(ch))
-                    newOne.addStateWithTransition(el, ch);
-            }
+        Set<NFAState> DFAStart = eClosure(start, emptySet);
+        // q.add(DFAStart);
+        retDFA.addStartState(DFAStart.toString());
+        // Set<NFAState> allClosures = new HashSet<NFAState>();
+        for (NFAState state : Q){
+            Set<NFAState> eOfState = eClosure(state, emptySet);
+            if (!eOfState.toString().equals(state.toString())) q.add(eOfState);
         }
-        retDFA.addState(newOne.toString());
-        // retDFA.addTransition(fromState, onSymb, toState);
-    } //
-    return retDFA;
-    
+        for(Set<NFAState> set_of_state : q){
+            NFAState newOne = new NFAState(set_of_state.toString());
+            Hashtable<Character, Set<NFAState>> forNewState = new Hashtable<Character, Set<NFAState>>();
+            for(NFAState state : set_of_state){
+                for(Character alphabet: Sigma){
+                    Set<NFAState> toStates = state.getNextWithTransition(alphabet);
+                    if(forNewState.get(alphabet) == null && toStates != null) 
+                        forNewState.put(alphabet, toStates);
+                    else{
+                        if(toStates!= null && !forNewState.get(alphabet).toString().equals(toStates.toString())){
+                            forNewState.put(alphabet, toStates);
+                        }
+                    }
+
+                }    
+                for(Character ch: forNewState.keySet()){ // Created statemap for new states
+                    for(NFAState el : forNewState.get(ch))
+                        newOne.addStateWithTransition(el, ch);
+                }
+            }
+            retDFA.addState(newOne.toString());
+            // retDFA.addTransition(fromState, onSymb, toState);
+        } //
+        return retDFA;    
     }
 
     
