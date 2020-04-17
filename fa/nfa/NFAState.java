@@ -8,6 +8,7 @@ public class NFAState extends fa.State {
     private char transition;
     private Boolean isFinal;
     private boolean isStart;
+    private boolean visited;
     
 
     public NFAState(String name){
@@ -16,8 +17,11 @@ public class NFAState extends fa.State {
         this.transition = 'n';
         this.isFinal = false;
         this.isStart = false;
+        this.visited = false;
     }
 
+    public void visited(boolean val){ this.visited = val;}
+    public boolean isVisited(){ return this.visited; }
     
     public Set<NFAState> getNextWithTransition(char transition){
         Set<NFAState> ret = stateMap.get(transition);
@@ -69,6 +73,7 @@ public class NFAState extends fa.State {
         state.isFinal = this.isFinal;
         state.isStart = this.isStart;
         state.transition = this.transition;
+        state.visited = this.visited;
         Set<Character> keys = this.stateMap.keySet();
         
         for(Character key: keys){

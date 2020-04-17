@@ -149,25 +149,114 @@ public NFA() {
         return from.getNextWithTransition(onSymb);
     }
 
+    // public Set<NFAState> eClosure(NFAState state){
+    //     // We create a Set of NFAState's and add the "state" to it.
+    //     Set<NFAState> eClosureStates = new HashSet<NFAState>();
+    //     eClosureStates.add(state);
+    //     state.visited(true);
+        
+        
+    //     return eClosureStates;
+    // }
+
+    public void recursiveClosure(NFAState state, Set<NFAState> states)
+    {
+        // base condition
+        if(state.getNextWithTransition('e') == null){  states.add(state);} //When we're done searching for 'e'
+        for(NFAState empty : state.getNextWithTransition('e')){//Finding e closure reachable states
+            if(!empty.isVisited()){
+                empty.visited(true);
+                states.add(empty);
+                recursiveClosure(empty, states);
+            }
+        }
+        // return null;
+    }
+
+
+    public Set<NFAState> eClosure(NFAState state, Set<NFAState> epsilon){
+        Set<NFAState> curr = state.getNextWithTransition('e');
+        if(curr != null){   //If there are states that have 'e'
+            for(NFAState empty : curr){
+                if(!empty.isVisited()){
+                    empty.visited(true);
+                    NFAState next = empty.deepCopy();
+                    epsilon.add(next);
+                    eClosure(next, epsilon);
+                }
+            }
+        } else {
+            curr = new HashSet<NFAState>();
+        }
+        return epsilon;
+
+
+    }
+
+    @Override
+    public DFA getDFA() {
+    
+    Set<NFAState> emptySet = new HashSet<NFAState>();
+    emptySet.add(start);
+
+    DFA retDFA = new DFA();
+    Queue<Set<NFAState>> q = new LinkedList<>();
+
+    Set<NFAState> DFAStart = eClosure(start, emptySet);
+    // q.add(DFAStart);
+    retDFA.addStartState(DFAStart.toString());
+    // Set<NFAState> allClosures = new HashSet<NFAState>();
+    for (NFAState state : Q){
+        Set<NFAState> eOfState = eClosure(state, emotySet);
+        if (!eOfState.toString().equals(state.toString())) q.add(eOfState);
+    }
+    for(Set<NFAState> set_of_state : q){
+        NFAState newOne = new NFAState(set_of_state.toString());
+        Hashtable<Character, Set<NFAState>> forNewState = new Hashtable<Character, Set<NFAState>>();
+        for(NFAState state : set_of_state){
+            for(Character alphabet: Sigma){
+                Set<NFAState> toStates = state.getNextWithTransition(alphabet);
+                if(forNewState.get(alphabet) == null) 
+                    forNewState.put(alphabet, toStates);
+                else{
+                    if(!forNewState.get(alphabet).toString().equals(toStates.toString())){
+                        forNewState.put(alphabet, toStates);
+                    }
+                }
+
+            }    
+            for(Character ch: forNewState.keySet()){ // Created statemap for new states
+                for(NFAState el : forNewState.get(ch))
+                    newOne.addStateWithTransition(el, ch);
+            }
+        }
+        retDFA.addState(newOne.toString());
+        // retDFA.addTransition(fromState, onSymb, toState);
+    } //
+    return retDFA;
+    
+    }
+
+    
     //NFA SPECIFIC METHODS
 
     /**
      * This method converts an NFA object into a DFA
      * @return a converted DFA
      */
-    @Override
-    public DFA getDFA() {
-        //Initialize necessary variables for BFS
-        DFA answerDFA = new DFA(); // Create the new DFA
-        Queue<HashSet<NFAState>> queue = new LinkedList<>();  // Create a queue (of sets of NFAStates) for BFS
+    // @Override
+    // public DFA getDFA() {
+    //     //Initialize necessary variables for BFS
+    //     DFA answerDFA = new DFA(); // Create the new DFA
+    //     Queue<HashSet<NFAState>> queue = new LinkedList<>();  // Create a queue (of sets of NFAStates) for BFS
 
-        // Create a set that contains the startState, and add this set to our DFA and queue
-        Set<NFAState> startDFAState = eClosure(start);
-        answerDFA.addStartState(startDFAState.toString());
-        queue.add((HashSet<NFAState>) startDFAState); //Add the start set to the queue
+    //     // Create a set that contains the startState, and add this set to our DFA and queue
+    //     Set<NFAState> startDFAState = eClosure(start);
+    //     answerDFA.addStartState(startDFAState.toString());
+    //     queue.add((HashSet<NFAState>) startDFAState); //Add the start set to the queue
 
-        return internetMethod(queue,answerDFA);
-    }
+    //     return internetMethod(queue,answerDFA);
+    // }
 
     /**
      * Internet pseudocode method of using BFS with queue to create DFA
@@ -228,53 +317,53 @@ public NFA() {
      * @param s
      * @return
      */
-    @Override
-    public Set<NFAState> eClosure(NFAState s) {
-        //Create a new set of states that will be our eClosure and add our source state to this set immediately
-        Set<NFAState> eClosureSet = new HashSet<>();
-        eClosureSet.add(s);
+   // @Override
+    // public Set<NFAState> eClosure(NFAState s) {
+    //     //Create a new set of states that will be our eClosure and add our source state to this set immediately
+    //     Set<NFAState> eClosureSet = new HashSet<>();
+    //     eClosureSet.add(s);
 
-        //Create a stack to store state names in, and push the source s to this stack immediately
-        Stack<NFAState> dfsStack = new Stack<>();
-        dfsStack.push(s);
+    //     //Create a stack to store state names in, and push the source s to this stack immediately
+    //     Stack<NFAState> dfsStack = new Stack<>();
+    //     dfsStack.push(s);
 
-        //Create a map to track visited states
-        LinkedHashMap<NFAState,Boolean> visitedMap = new LinkedHashMap<>();
-        for(NFAState currentState : Q) {
-            visitedMap.put(currentState,false);
-        }
+    //     //Create a map to track visited states
+    //     LinkedHashMap<NFAState,Boolean> visitedMap = new LinkedHashMap<>();
+    //     for(NFAState currentState : Q) {
+    //         visitedMap.put(currentState,false);
+    //     }
 
-        //Mark the source as visited
-        visitedMap.replace(s,true);
+    //     //Mark the source as visited
+    //     visitedMap.replace(s,true);
 
-        //Now initiate DFS...
-        while(!dfsStack.isEmpty()) {
-            //Pop a state from stack to visit next
-            NFAState currentStackState = dfsStack.pop();
+    //     //Now initiate DFS...
+    //     while(!dfsStack.isEmpty()) {
+    //         //Pop a state from stack to visit next
+    //         NFAState currentStackState = dfsStack.pop();
 
-            //Get all the 'e' transition neighbors of the currentStackState
-            Set<NFAState> eNeighborSet = getToState(getSpecificState(currentStackState.name),'e'); //Get all the 'e' transition neighbors of currentStackNodeString THIS METHOD DOESNT WORK BECAUSE IT CAN'T TRAVERSE
+    //         //Get all the 'e' transition neighbors of the currentStackState
+    //         Set<NFAState> eNeighborSet = getToState(getSpecificState(currentStackState.name),'e'); //Get all the 'e' transition neighbors of currentStackNodeString THIS METHOD DOESNT WORK BECAUSE IT CAN'T TRAVERSE
 
-            //If this set isn't empty...
-            if(!eNeighborSet.isEmpty()) {
+    //         //If this set isn't empty...
+    //         if(!eNeighborSet.isEmpty()) {
 
-                //Get the eClosure of all the neighbors...
-                for(NFAState currentState : eNeighborSet)
-                    eClosureSet.add(currentState);
+    //             //Get the eClosure of all the neighbors...
+    //             for(NFAState currentState : eNeighborSet)
+    //                 eClosureSet.add(currentState);
 
-                //For each 'e' neighbor...
-                for(NFAState currentNeighbor : eNeighborSet) {
-                    if(!visitedMap.get(currentNeighbor)) { //If the current neighbor was not visited...
-                        dfsStack.push(currentNeighbor); //Then push it to the DFS stack...
-                        visitedMap.replace(currentNeighbor,true); //...and mark it as visited
-                    }
-                }
+    //             //For each 'e' neighbor...
+    //             for(NFAState currentNeighbor : eNeighborSet) {
+    //                 if(!visitedMap.get(currentNeighbor)) { //If the current neighbor was not visited...
+    //                     dfsStack.push(currentNeighbor); //Then push it to the DFS stack...
+    //                     visitedMap.replace(currentNeighbor,true); //...and mark it as visited
+    //                 }
+    //             }
 
-            }
-        }
+    //         }
+    //     }
 
-        return eClosureSet;
-    }
+    //     return eClosureSet;
+    // }
 
     
 
