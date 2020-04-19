@@ -178,17 +178,41 @@ public class NFA {
 		// return null;
 	}
 
-	public Set<NFAState> eClosure(NFAState state, Set<NFAState> epsilon) {
-		Set<NFAState> curr = state.getNextWithTransition('e');
-		if (curr != null) { // If there are states that have 'e'
-			for (NFAState empty : curr) {
-				if (!empty.isVisited()) {
-					empty.visited(true);
-					NFAState next = empty.deepCopy();
-					if (!epsilon.contains(next)) {
-						epsilon.add(next);
+	public Set<NFAState> eClosure(NFAState state) {
+
+		Set<NFAState> eClosureStates = new HashSet<NFAState>();
+		Queue<NFAState> qq = new LinkedList<>();
+		qq.add(state);
+		eClosureStates.add(state); // From State
+
+		while (!qq.isEmpty()) {
+			NFAState stateQ = qq.poll();
+			if (!stateQ.isVisited()) {
+				stateQ.visited(true);
+				if (stateQ.getNextWithTransition('e') != null) // If there exist an etransition
+				{
+					Set<NFAState> eTransitionStates = stateQ.getNextWithTransition('e');
+					if (eTransitionStates != null) {
+						qq.addAll(eTransitionStates);
+						eClosureStates.addAll(eTransitionStates);
 					}
-					eClosure(next, epsilon);
+				}
+			}
+
+		}
+
+		return eClosureStates;
+
+//		Set<NFAState> curr = state.getNextWithTransition('e');
+//		if (curr != null) { // If there are states that have 'e'
+//			for (NFAState empty : curr) {
+//				if (!empty.isVisited()) {
+//					empty.visited(true);
+//					NFAState next = empty.deepCopy();
+//					if (!epsilon.contains(next)) {
+//						epsilon.add(next);
+//					}
+//					eClosure(next, epsilon);
 //					for (Character ch : Sigma) {
 //						if (ch != 'e') {
 //							Set<NFAState> newStates = next.getNextWithTransition(ch);
@@ -217,13 +241,13 @@ public class NFA {
 //							}
 //						}
 //					}
-				}
-			}
-		} else {
-			curr = new HashSet<NFAState>();
-		}
-
-		return epsilon;
+//				}
+//			}
+//		} else {
+//			curr = new HashSet<NFAState>();
+//		}
+//
+//		return epsilon;
 
 	}
 
@@ -232,96 +256,71 @@ public class NFA {
 		Set<NFAState> emptySet = new HashSet<NFAState>();
 		emptySet.add(start);
 
-		DFA retDFA = new DFA();
-		Queue<Set<NFAState>> q = new LinkedList<>();
+		DFA retDFA = new DFA(); // return DFA
+		Queue<Set<NFAState>> q = new LinkedList<Set<NFAState>>();
 
-		Set<NFAState> DFAStart = eClosure(start, emptySet);
+		Set<NFAState> DFAStart = eClosure(start); // return set of state that can reach with e-transition
 		q.add(DFAStart);
+		System.out.println(DFAStart.toString());
 		retDFA.addStartState(DFAStart.toString());
 		// Set<NFAState> allClosures = new HashSet<NFAState>();
 		while (!q.isEmpty()) {
-			
-			//for (NFAState state : Q) {
-			Set<NFAState> pulled = q.remove(); //get first element in q
-			for(NFAState eachState : pulled) // replace all states in pulled with estates
+
+			// for (NFAState state : Q) {
+			Set<NFAState> pulled = q.remove(); // get first element in q
+			for (NFAState eachState : pulled) // replace all states in pulled with estates
 			{
-				pulled.addAll(eClosure(eachState, new HashSet<NFAState>()));
+				pulled.addAll(eClosure(eachState));
 			}
-			for(Character c : Sigma)
-			{
-				if(c != 'e')
-				{
-					Set<NFAState> eState = new HashSet<NFAState>();
-					Set<NFAState> cState = new HashSet<NFAState>();
-					for(NFAState pull : pulled) //Transition from pulled
+			for (Character c : Sigma) {
+				boolean finalState = false;
+				if (c != 'e') {
+					Set<NFAState> enclosureState = new HashSet<NFAState>();
+					Set<NFAState> transitionState = new HashSet<NFAState>();
+					for (NFAState pull : pulled) // Transition from pulled
 					{
-						cState.addAll(pull.getNextWithTransition(c));
-					}
-					if(cState != null)
-					{
-						
-						for(NFAState s : cState) // Every E-closure transition
+						transitionState = pull.getNextWithTransition(c); // available states from fromState
+
+						if (transitionState != null)// If there are no transition
 						{
-							eState.addAll(eClosure(s, new HashSet<NFAState>()));
+							for (NFAState s : transitionState) // Every E-closure transition
+							{
+								enclosureState.addAll(eClosure(s));
+								enclosureState.add(s);
+								if (s.isFinal()) {
+									finalState = true;
+								}
+							}
 						}
-						
 					}
-					System.out.println("@@@@"+ cState.toString() + "\n" + eState.toString());
-				}
-				
-			}
-//			System.out.println(pulled.toString());
-//			
-//			Set<NFAState> newState2 = new HashSet<NFAState>();
-//			newState2.add(state);
-//			q.add(newState2);
-//
-//			emptySet = new HashSet<NFAState>();
-//			Set<NFAState> eOfState = eClosure(state, emptySet);
-//			if (!eOfState.toString().equals(state.toString()) && !q.contains(eOfState)) {
-//				q.add(eOfState);
-//			}
-//		}
-//		for (Set<NFAState> set_of_state : q) {
-//			NFAState newOne = new NFAState(set_of_state.toString());
-//			Hashtable<Character, Set<NFAState>> forNewState = new Hashtable<Character, Set<NFAState>>();
-//			for (NFAState state : set_of_state) {
-//				if (state.isFinal()) {
-//					newOne.setFinalState(true);
-//				}
-//				for (Character alphabet : Sigma) {
-//					Set<NFAState> toStates = state.getNextWithTransition(alphabet);
-//					if (forNewState.get(alphabet) == null && toStates != null)
-//						forNewState.put(alphabet, toStates);
-//					else {
-//						if (toStates != null && !forNewState.get(alphabet).toString().equals(toStates.toString())) {
-//							forNewState.put(alphabet, toStates);
-//						}
+//					for(NFAState nfa : enclosureState)
+//					{
+//						finalState = finalState || nfa.isFinal();
 //					}
-//
-//				}
-//				for (Character ch : forNewState.keySet()) { // Created statemap for new states
-//					for (NFAState el : forNewState.get(ch))
-//						newOne.addStateWithTransition(el, ch);
-//				}
-//			}
-//
-//			retDFA.addState(newOne.toString());
-//			if (newOne.isFinal()) {
-//				retDFA.addFinalState(newOne.toString());
-//			}
-//
-//			// retDFA.addTransition(fromState, onSymb, toState);
-//		} //
-//
-//		for (DFAState state : retDFA.getStates()) {
-//			for (NFAState state2 : Q) {
-//				if (state.toString().equals(state2.toString())) {
-//					System.out.println(state.toString());
-//					System.out.println(state2.toString());
-//					// state.addTransition(onSymb, toState);
-//				}
-//			}
+					
+					if(finalState)
+					{
+						if(!q.contains(enclosureState)&&!retDFA.getStates().contains(enclosureState))
+						{
+							retDFA.addFinalState(enclosureState.toString());
+						}
+						retDFA.addTransition(pulled.toString(), c, enclosureState.toString());
+						//System.out.println(retDFA.toString());
+					}else {
+						if(!q.contains(enclosureState) && !retDFA.getStates().contains(enclosureState))
+						{
+							retDFA.addState(enclosureState.toString());
+						}
+						retDFA.addTransition(pulled.toString(), c, enclosureState.toString());
+					}
+					if(!q.contains(enclosureState) && !retDFA.getStates().contains(enclosureState)) {
+						q.add(enclosureState);
+					}
+					
+//					System.out.println("@@@@" + transitionState.toString() + "\n" + enclosureState.toString());
+
+				}
+			}
 		}
 
 		return retDFA;
