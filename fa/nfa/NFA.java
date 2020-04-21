@@ -6,7 +6,11 @@ import fa.dfa.DFAState;
 
 import java.util.*;
 
-public class NFA {
+/**
+ * CS361 Project 2 Implementation of a NFA by extending given interfaces
+ * @author Steven Kim, Andre Maldonado, Rohit Gangurde
+ */
+public class NFA implements NFAInterface{
 	NFAState start; // Only one state can be the start in a NFA
 	Set<NFAState> finals; // HashSets track order that objects are stored into it, described in 3.3 #3
 	Set<Character> transitions; // state -> (character -> next state)
@@ -15,6 +19,9 @@ public class NFA {
 	Set<Character> Sigma; // Symbols used as transition characters for our NFA
 	static ArrayList<Set<NFAState>> history;
 	
+	/**
+	 * Constructor to initialize instance variables
+	 */
 	public NFA() {
 		Q = new HashSet<NFAState>();
 		Sigma = new HashSet<>();
@@ -79,6 +86,12 @@ public class NFA {
 		Q.add(finalState);
 	}
 
+	/**
+	 * Adds the transition to the NFA's delta data structure
+	 * @param fromState
+	 * @param onSymb
+	 * @param toState
+	 */
 	public void addTransition(String fromState, char onSymb, String toState) {
 		Sigma.add(onSymb);
 		for (NFAState state : Q) {
@@ -155,43 +168,33 @@ public class NFA {
 		return from.getNextWithTransition(onSymb);
 	}
 
-	public void recursiveClosure(NFAState state, Set<NFAState> states) {
-		// base condition
-		if (state.getNextWithTransition('e') == null) {
-			states.add(state);
-		} // When we're done searching for 'e'
-		for (NFAState empty : state.getNextWithTransition('e')) {// Finding e closure reachable states
-			if (!empty.isVisited()) {
-				empty.visited(true);
-				states.add(empty);
-				recursiveClosure(empty, states);
-			}
-		}
-		// return null;
-	}
-
+	/**
+	 * Returns the output of the eClosure function on the given states
+	 * @param states
+	 * @return eClosureStates : output of the eClosure function
+	 */
 	public Set<NFAState> eClosure(Set<NFAState> states) {
 		
 		for(NFAState state : states) {
-			state.visited(false);
+			state.setVisited(false);
 		}
 		
 		Set<NFAState> eClosureStates = new HashSet<NFAState>();
 		for(NFAState state : states) {
 		
-		Queue<NFAState> qq = new LinkedList<>();
-		qq.add(state);
+		Queue<NFAState> q = new LinkedList<>();
+		q.add(state);
 		eClosureStates.add(state); // From State
 
-		while (!qq.isEmpty()) {
-			NFAState stateQ = qq.remove();
+		while (!q.isEmpty()) {
+			NFAState stateQ = q.remove();
 			if (!stateQ.isVisited()) {
-				stateQ.visited(true);
+				stateQ.setVisited(true);
 				if (stateQ.getNextWithTransition('e') != null) // If there exist an etransition
 				{
 					Set<NFAState> eTransitionStates = stateQ.getNextWithTransition('e');
 					if (eTransitionStates != null) {
-						qq.addAll(eTransitionStates);
+						q.addAll(eTransitionStates);
 						eClosureStates.addAll(eTransitionStates);
 					}
 				}
@@ -201,7 +204,11 @@ public class NFA {
 		}
 		return eClosureStates;
 	}
-
+	/**
+	 * Returns true if s is a final state, else false
+	 * @param s
+	 * @return
+	 */
 	public boolean isFinal(Set<NFAState> s) {
 		for(NFAState f : s)
 		{
@@ -213,6 +220,10 @@ public class NFA {
         return false;
     }
 	
+	/**
+	 * Constructs a DFA from set of NFA states. Implements Breadth First Search
+	 * @return retDFA : dfa object
+	 */
 	public DFA getDFA() {
 		history = new ArrayList<Set<NFAState>>();
 		Set<NFAState> curr = new HashSet<NFAState>(); // check
@@ -228,12 +239,6 @@ public class NFA {
 		//System.out.println("DFA Start is: "+DFAStart.toString());
 		retDFA.addStartState(DFAStart.toString()); // we have startState in DFA
 		while (!q.isEmpty()) {// expand as we explore nodes
-
-//			for(Set<NFAState> n : q)
-//			{
-//				System.out.println("q has : "+n.toString());
-//			}
-				
 			Set<NFAState> pulled = q.remove(); // get first element in q
 			for(NFAState e : pulled) // deepcopy method
 			{
@@ -245,8 +250,6 @@ public class NFA {
 				if (c != 'e') { //everything besides e
 					Set<NFAState> enclosureState = new HashSet<NFAState>(); //State the the toState can go as eTrans
 					Set<NFAState> transitionState = new HashSet<NFAState>(); // All states that a can go to
-					Set<NFAState> totalTrans = new HashSet<NFAState>();
-					
 					for (NFAState pull : pulled) // Every state that pulled can go to with eTran
 					{
 						try{
@@ -256,16 +259,13 @@ public class NFA {
 							
 						}
 					}
-
-					
 					if (transitionState != null)// If there are transition
 					{
 							enclosureState.addAll(eClosure(transitionState));
 							if (isFinal(enclosureState)) {
 								finalState = true;
 							}
-					}
-					
+					}					
 					
 					boolean contains = false;
 					for(DFAState d : retDFA.getStates())//contains
@@ -275,9 +275,6 @@ public class NFA {
 							contains = true;
 						}
 					}
-					
-					
-					
 					if(finalState)
 					{
 						if(!curr.equals(enclosureState)&&!contains)
@@ -297,20 +294,19 @@ public class NFA {
 						q.add(enclosureState);
 						history.add(enclosureState);
 					}
-					
-					
-					//System.out.println("From " + curr.toString() + " with " + c + " to " + enclosureState.toString());
-
 				}
 			}
-			
-			}
-//		for(DFAState d : retDFA.getStates())
-//		{
-//			d.getTransition();
-//		}
-
+		}
 		return retDFA;
-
+	}
+	@Override
+	/**
+	 * Not implemented
+	 * @param s
+	 * @return
+	 */
+	public Set<NFAState> eClosure(NFAState s) {
+		// TODO Auto-generated method stub
+		return null;
 	}
 }
